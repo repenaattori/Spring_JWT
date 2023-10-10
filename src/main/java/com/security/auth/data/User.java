@@ -1,4 +1,4 @@
-package com.security.auth;
+package com.security.auth.data;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

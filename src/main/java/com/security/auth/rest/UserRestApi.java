@@ -1,4 +1,4 @@
-package com.security.auth;
+package com.security.auth.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class UserRestApi {
+    
     @GetMapping("private/userdata")
     public ResponseEntity<String> getPrivateData(@RequestAttribute(name="username") String username){
 

@@ -1,9 +1,9 @@
-package com.security.auth;
+package com.security.auth.data;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PersonRepository extends JpaRepository<User,String>{
+public interface UserRepository extends JpaRepository<User,String>{
 
 }
