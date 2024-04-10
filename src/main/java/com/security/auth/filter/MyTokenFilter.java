@@ -20,45 +20,55 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 @Order(1)
-public class MyTokenFilter extends OncePerRequestFilter{
+public class MyTokenFilter extends OncePerRequestFilter {
 
-        
     @Value("${jwt.secret}")
     private String jwtKey;
 
+    /**
+     * Omitting this filter for options and other than private endpoints.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getMethod().equalsIgnoreCase("options") || request.getServletPath().indexOf("private") < 0;
+    }
+
+    /**
+     * Check the authorization header for token and validate the token. 
+     * Returns forbidden status if the token is not valid.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-      
-                //Only private paths are checked
-                if(request.getServletPath().indexOf("private") < 0 ){
+
+        String auth = request.getHeader("Authorization");
+
+        if (auth != null) {
+
+            String[] bearer = auth.split(" ");
+
+            if (bearer.length > 1) {
+
+                String username = verifyJwt(bearer[1]);
+
+                if (username != null) {
+                    //Setting username for the actual endpoint method to access
+                    request.setAttribute("username", username);
                     filterChain.doFilter(request, response);
                     return;
                 }
+            }
+        }
 
-                String auth = request.getHeader("Authorization");
-                
-                if(auth != null){
-                    String[] bearer = auth.split(" ");
-                    if(bearer.length > 1){
-                        String username = validateJwt(bearer[1]);
-                        if(username != null){
-                            request.setAttribute("username", username);
-                            filterChain.doFilter(request, response);
-                            return;
-                        }
-                    }
-                }
-                
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("Forbidden access!");
-                response.getWriter().flush();
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.getWriter().write("Forbidden access!");
+        response.getWriter().flush();
     }
-    
+
     /**
      * Verify jwt token and return username if token is valid
      */
-    public String validateJwt(String jwtToken){
+    public String verifyJwt(String jwtToken) {
         Algorithm alg = Algorithm.HMAC256(jwtKey);
         JWTVerifier verifier = JWT.require(alg).build();
 
@@ -72,9 +82,4 @@ public class MyTokenFilter extends OncePerRequestFilter{
         return null;
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        // TODO Auto-generated method stub
-        return super.shouldNotFilter(request);
-    }
 }
